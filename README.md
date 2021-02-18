@@ -25,15 +25,15 @@ On this document we will use the development board called "blue pill" and will u
 STM32F103C8 belongs to the medium density devices of ST. The table below shows that STM32F103C8 had 128 pages of 1 Kbyte memory block starting from 0x0800 0000 to 0x0801 FFFF.
 
 
- | Block | Name | Base adresses | Size (bytes)|
- |:--:|:--:|:--:|:--:|:--:|
- | Main <br> memory |Page 0|0x0800 0000 - 0x0800 03FF|1 Kbyte|
- |^|Page 1|0x0800 0400 - 0x0800 07FF|1 Kbyte|
- |^|Page 2|0x0800 0800 - 0x0800 0BFF|1 Kbyte|
- |^|Page 3|0x0800 0C00 - 0x0800 0FFF|1 Kbyte|
- |^|Page 4|0x0800 1000 - 0x0800 13FF|1 Kbyte|
- |^|-<br>-<br>-|-<br>-<br>-|-<br>-<br>-|
- |^|Page 127|0x0801 FC00 - 0x0801 FFFF|1 Kbyte|
+| Block | Name | Base adresses | Size (bytes)|
+|:--:|:--:|:--:|:--:|:--:|
+| Main <br> memory |Page 0|0x0800 0000 - 0x0800 03FF|1 Kbyte|
+|^|Page 1|0x0800 0400 - 0x0800 07FF|1 Kbyte|
+|^|Page 2|0x0800 0800 - 0x0800 0BFF|1 Kbyte|
+|^|Page 3|0x0800 0C00 - 0x0800 0FFF|1 Kbyte|
+|^|Page 4|0x0800 1000 - 0x0800 13FF|1 Kbyte|
+|^|-<br>-<br>-|-<br>-<br>-|-<br>-<br>-|
+|^|Page 127|0x0801 FC00 - 0x0801 FFFF|1 Kbyte|
 
  <!-- |Information block|System memory|0x1FFF F000 - 0x0801 F7FF|2 Kbyte|
  |^|Option Bytes|0x1FFF F800 - 0x0801 F80F|16|
