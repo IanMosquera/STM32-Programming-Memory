@@ -35,15 +35,6 @@ STM32F103C8 belongs to the medium density devices of ST. The table below shows t
 |^|-<br>-<br>-|-<br>-<br>-|-<br>-<br>-|
 |^|Page 127|0x0801 FC00 - 0x0801 FFFF|1 Kbyte|
 
- <!-- |Information block|System memory|0x1FFF F000 - 0x0801 F7FF|2 Kbyte|
- |^|Option Bytes|0x1FFF F800 - 0x0801 F80F|16|
- |Flash memory<br>interface<br>registers|FLASH_ACR|0x4002 2000 - 0x4002 2003|4|
- |^|FLASH_KEYR|0x4002 2004 - 0x4002 2007|4|
- |^|FLASH_OPTKEYR|0x4002 2008 - 0x4002 200B|4|
- |^|FLASH_SR|0x4002 200C - 0x4002 200F|4|
- |^|FLASH_CR|0x4002 2010 - 0x4002 2013|4|
- |^|FLASH_AR|0x4002 2014 - 0x4002 2017|4|
- |^|Reserved|0x4002 2018 - 0x4002 201B|4| -->
 
 If we want to save variable/constants into the flash-memory, other than the main firmware, it is best to start at the very last page 0x0801 FC00 going up in order to avoid overwritting the firmware itself.
 
