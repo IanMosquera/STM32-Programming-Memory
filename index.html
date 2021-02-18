@@ -3,11 +3,11 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       
-      <link rel="stylesheet" href="file:////home/ianmosquera/.vscode/extensions/shd101wyy.markdown-preview-enhanced-0.5.16/node_modules/@shd101wyy/mume/dependencies/katex/katex.min.css">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
       
       
       
-      <script type="text/javascript" src="file:////home/ianmosquera/.vscode/extensions/shd101wyy.markdown-preview-enhanced-0.5.16/node_modules/@shd101wyy/mume/dependencies/mermaid/mermaid.min.js" charset="UTF-8"></script>
+      <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@8.8.4/dist/mermaid.min.js"></script>
       
       
       
@@ -368,7 +368,7 @@ pre[data-line] .line-highlight[data-end]:after {
 <h5 class="mume-header" id="function-flow">Function Flow</h5>
 
 <p>The flow chart below shows the process the function performs when it is called.</p>
-<div class="mermaid">graph TD
+<div class="mermaid">graph LR
 A([Start]) --&gt; B[/Get Number of Words/]
 B[/Get Number of Words/] --&gt; C[/Unlock Flash/]
 C[/Unlock Flash/] --&gt; D[/Erase Flash/]
@@ -521,30 +521,8 @@ If the writing process is OK, we increment the <em>ctr</em>, and  add 4 to the <
 </ul>
 
       </div>
-      <div class="md-sidebar-toc"><ul>
-<li><a href="#reading-and-writing-on-memory">Reading and Writing on Memory</a>
-<ul>
-<li><a href="#flash-module-organization-medium-density-devices">Flash Module Organization (medium-density devices)</a></li>
-<li><a href="#flash_write_data">Flash_Write_Data</a>
-<ul>
-<li><a href="#function-flow">Function Flow</a>
-<ul>
-<li><a href="#1-compute-the-number-of-words">1. Compute the Number of Words</a></li>
-<li><a href="#2-unlock-flash">2. Unlock Flash</a></li>
-<li><a href="#3-erase-flash">3. Erase Flash</a></li>
-<li><a href="#4-program-flash">4. Program Flash</a></li>
-<li><a href="#5-lock-flash">5. Lock Flash</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#flash_read_data">Flash_Read_Data</a></li>
-</ul>
-</li>
-<li><a href="#external-references">External References</a></li>
-</ul>
-</div>
-      <a id="sidebar-toc-btn">&#x2261;</a>
+      
+      
     
     
     <script>
@@ -586,18 +564,5 @@ if (typeof(window['Reveal']) !== 'undefined') {
     
     
     
-<script>
-
-var sidebarTOCBtn = document.getElementById('sidebar-toc-btn')
-sidebarTOCBtn.addEventListener('click', function(event) {
-  event.stopPropagation()
-  if (document.body.hasAttribute('html-show-sidebar-toc')) {
-    document.body.removeAttribute('html-show-sidebar-toc')
-  } else {
-    document.body.setAttribute('html-show-sidebar-toc', true)
-  }
-})
-</script>
-      
   
     </body></html>
