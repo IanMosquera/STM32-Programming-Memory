@@ -1,23 +1,26 @@
-### Reading and Writing on Memory
+## Reading and Writing on STM32 MCU Flash Memory
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
-- [Reading and Writing on Memory](#reading-and-writing-on-memory)
-  - [Flash Module Organization (medium-density devices)](#flash-module-organization-medium-density-devices)
-  - [Flash_Write_Data](#flash_write_data)
-    - [Function Flow](#function-flow)
-      - [1. Compute the Number of Words](#1-compute-the-number-of-words)
-      - [2. Unlock Flash](#2-unlock-flash)
-      - [3. Erase Flash](#3-erase-flash)
-      - [4. Program Flash](#4-program-flash)
-      - [5. Lock Flash](#5-lock-flash)
-  - [Flash_Read_Data](#flash_read_data)
-- [External References](#external-references)
+- [Reading and Writing on STM32 MCU Flash Memory](#reading-and-writing-on-stm32-mcu-flash-memory)
+  - [STM32 MCU with Page](#stm32-mcu-with-page)
+    - [Flash Module Organization (medium-density devices)](#flash-module-organization-medium-density-devices)
+    - [Flash_Write_Data](#flash_write_data)
+      - [Function Flow](#function-flow)
+        - [1. Compute the Number of Words](#1-compute-the-number-of-words)
+        - [2. Unlock Flash](#2-unlock-flash)
+        - [3. Erase Flash](#3-erase-flash)
+        - [4. Program Flash](#4-program-flash)
+        - [5. Lock Flash](#5-lock-flash)
+    - [Flash_Read_Data](#flash_read_data)
+  - [External References](#external-references)
 
 <!-- /code_chunk_output -->
 
 Every microcontroller had an allocated flash-memory in which the firmware are stored. The advantage of the flash-memory is that it retains its data even the power is disconnected. It is ideal for constants to be stored which vital for the firmware's operation.
+
+### STM32 MCU with Memories Divided by Pages
 
 On this document we will use the development board called "blue pill" and will use STM32CubeIDE as text editor. The blue pill use STM32F103C8 MCU.
 
