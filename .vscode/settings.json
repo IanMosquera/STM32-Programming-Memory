@@ -1,3 +1,4 @@
 {
-    "markdown-preview-enhanced.enableExtendedTableSyntax": true
+    "markdown-preview-enhanced.enableExtendedTableSyntax": true,
+    "markdown-preview-enhanced.codeBlockTheme": "monokai.css"
 }
