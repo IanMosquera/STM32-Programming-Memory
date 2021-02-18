@@ -26,7 +26,7 @@ STM32F103C8 belongs to the medium density devices of ST. The table below shows t
 
 
 | Block | Name | Base adresses | Size (bytes)|
-|:--:|:--:|:--:|:--:|:--:|
+|:--:|:--:|:--:|:--:|
 | Main <br> memory |Page 0|0x0800 0000 - 0x0800 03FF|1 Kbyte|
 |^|Page 1|0x0800 0400 - 0x0800 07FF|1 Kbyte|
 |^|Page 2|0x0800 0800 - 0x0800 0BFF|1 Kbyte|
