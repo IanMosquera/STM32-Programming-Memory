@@ -178,7 +178,7 @@ The program will store the value into the _*var_  word by word, determined by in
 
 Afterwhich it exits the function. The value of _StartPageAddress_ now is tored on the address value of _*var_.
 
-Test commit
+
 
 ### External References
 - [Blue Pill](https://stm32duinoforum.com/forum/wiki_subdomain/index_title_Blue_Pill.html)
