@@ -60,13 +60,13 @@ uint32_t Flash_Write_Data (uint32_t StartPageAddress, uint32_t * data){
 The flow chart below shows the process the function performs when it is called.
 
 ```mermaid
-graph LR
-A([Start]) --> B[/Get Number of Words/]
-B[/Get Number of Words/] --> C[/Unlock Flash/]
-C[/Unlock Flash/] --> D[/Erase Flash/]
-D[/Erase Flash/] --> E[/Program Flash/]
-E[/Program Flash/] --> F[/Lock Flash/]
-F[/Lock Flash/] --> G([End])
+graph LR;
+A([Start]) --> B[/Get Number of Words/];
+B[/Get Number of Words/] --> C[/Unlock Flash/];
+C[/Unlock Flash/] --> D[/Erase Flash/];
+D[/Erase Flash/] --> E[/Program Flash/];
+E[/Program Flash/] --> F[/Lock Flash/];
+F[/Lock Flash/] --> G([End]);
 ```
 
 
