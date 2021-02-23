@@ -335,6 +335,8 @@ The rest of the operation's value are shown on the table below.
 | 11 | 'd'    | 2     | " dlr"    | >>16        | 'd'                  |
 | 12 | null   | 2     | "dlr"     | >>24        | ' '                  |
 
+finally
+
 ## External References
 - [Blue Pill](https://stm32duinoforum.com/forum/wiki_subdomain/index_title_Blue_Pill.html)
 - [STM32F10xxx Flash memory microcontrollers](https://www.st.com/resource/en/programming_manual/cd00283419-stm32f10xxx-flash-memory-microcontrollers-stmicroelectronics.pdf)
