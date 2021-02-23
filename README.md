@@ -19,7 +19,6 @@
       - [Programming(Writing) Flash](#programmingwriting-flash)
   - [Reading Data from the Memory](#reading-data-from-the-memory)
   - [Converting Stored Data to String](#converting-stored-data-to-string)
-        - [Program Flash](#program-flash)
   - [External References](#external-references)
 
 <!-- /code_chunk_output -->
@@ -84,10 +83,11 @@ For example a "_Hello World_" string that has data length of 11, would have a th
 
 The table below maps how many word the example string have.
 
-| Word    | > | > | > | 1 | > | > | > | 2 | > | > | >  | 3  |
-|---------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:--:|:--:|
-| data[ ] | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
-| char    | H | e | l | l | o | _ | W | o | r | l | d  | _  |
+|         |  >  |  >  |  >  |  >  |  >  |  >  |  >  |  >  |  >  |  >  |  >  | Word No. |
+|---------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:--------:|
+|         |  >  |  >  |  >  |  1  |  >  |  >  |  >  |  2  |  >  |  >  |  >  |    3     |
+| data[x] |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  | 10  |    11    |
+| char    | 'H' | 'e' | 'l' | 'l' | 'o' | ' ' | 'W' | 'o' | 'r' | 'l' | 'd' |   ' '    |
 
 ##### 2. Unlocking Flash 
 Next we must unlock the flash memory for modification by using the code below.
@@ -150,7 +150,7 @@ After the page area has been erased, we can now write the data into the flash me
 If the writing process is OK, we increment the _ctr_, and  add 4 to the _StartPageAddress_, else an error is captured.
 
 
-```C++
+```c
 int ctr = 0;
 while (ctr < numberofwords){
 	if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, StartPageAddress, data[ctr]) == HAL_OK){
@@ -172,7 +172,7 @@ HAL_FLASH_Lock();
 ### Flash_Read_Data
 This function reads data from the flash memory and has the following arguments.
 
-```C++
+```c
 void Flash_Read_Data (uint32_t StartPageAddress, __IO uint32_t * data){
 	...
 }
@@ -180,7 +180,7 @@ void Flash_Read_Data (uint32_t StartPageAddress, __IO uint32_t * data){
 - **StartPageAddress** - the starting address of the page in flash-memory which where we want to read data.
 - **data** - the address of the 32-bit variable where we want to store the data.
 
-```C++
+```c
 while (1){
 	*var = *(__IO uint32_t *)StartPageAddress;
 	if (*var == 0xffffffff){
@@ -294,31 +294,8 @@ void Flash_Read_Data (uint32_t StartPageAddress, __IO uint32_t * data){
 Inside the function is a loop which passess the data from one address to another word by word. This are determined by the increment in *StartPageAddress* by four(4).
 
 ## Converting Stored Data to String
-To read the stored string data on the flash memory address, we need to convert the data into strings using the function below.
+To read the stored string data on the flash memory address, we can use the function below.
  
-
-```c++
-#define FLASH_VOLTAGE_RANGE_1        0x00000000U  /*!< Device operating range: 1.8V to 2.1V                */
-#define FLASH_VOLTAGE_RANGE_2        0x00000001U  /*!< Device operating range: 2.1V to 2.7V                */
-#define FLASH_VOLTAGE_RANGE_3        0x00000002U  /*!< Device operating range: 2.7V to 3.6V                */
-#define FLASH_VOLTAGE_RANGE_4        0x00000003U  /*!< Device operating range: 2.7V to 3.6V + External Vpp */
-```
-
-##### Program Flash
-This process is the same as the process described above.
-
-```c++
-...
-while (ctr < numberofwords){
-	if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, StartSectorAddress, data[ctr]) == HAL_OK){
-		StartSectorAddress += 4;  
-		ctr++;
-	}
-	else{
-		return HAL_FLASH_GetError ();
-	}
-}
-```
 
 ```c
 void Convert_To_Str (uint32_t *data, char *str){
@@ -345,7 +322,7 @@ data[2] = "rld "
 ```
 The rest of the operation's value are shown on the table below.
 | i  | str[i] | [i/4] | data[i/4] | >>(8*(i%4)) | data[i/4]>>(8*(i%4)) |
-|----|:------:|:-----:|-----------|-------------|----------------------|
+|:--:|:------:|:-----:|-----------|-------------|----------------------|
 | 0  | 'H'    | 0     | "lleH"    | >>0         | 'H'                  |
 | 1  | 'e'    | 0     | "lleH"    | >>8         | 'e'                  |
 | 2  | 'l'    | 0     | "lleH"    | >>16        | 'l'                  |
@@ -358,7 +335,7 @@ The rest of the operation's value are shown on the table below.
 | 11 | 'd'    | 2     | " dlr"    | >>16        | 'd'                  |
 | 12 | null   | 2     | "dlr"     | >>24        | ' '                  |
 
-finally
+
 
 ## External References
 - [Blue Pill](https://stm32duinoforum.com/forum/wiki_subdomain/index_title_Blue_Pill.html)
