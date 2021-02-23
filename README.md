@@ -3,6 +3,7 @@
 
 <!-- code_chunk_output -->
 
+<<<<<<< Updated upstream
 - [Reading and Writing on Memory](#reading-and-writing-on-memory)
   - [Flash Module Organization (medium-density devices)](#flash-module-organization-medium-density-devices)
   - [Flash_Write_Data](#flash_write_data)
@@ -14,6 +15,25 @@
       - [5. Lock Flash](#5-lock-flash)
   - [Flash_Read_Data](#flash_read_data)
 - [External References](#external-references)
+=======
+- [Reading and Writing on STM32 MCU Flash Memory](#reading-and-writing-on-stm32-mcu-flash-memory)
+  - [Memory Divided by Pages](#memory-divided-by-pages)
+    - [Flash Module Organization (medium-density devices)](#flash-module-organization-medium-density-devices)
+    - [Flash_Write_Data](#flash_write_data)
+        - [1. Computing the Number of Words](#1-computing-the-number-of-words)
+        - [2. Unlocking Flash](#2-unlocking-flash)
+        - [3. Erasing Flash](#3-erasing-flash)
+        - [4. Programming(Writing) Flash](#4-programmingwriting-flash)
+        - [5. Lock Flash](#5-lock-flash)
+    - [Flash_Read_Data](#flash_read_data)
+  - [Memory Divided by Sectors](#memory-divided-by-sectors)
+    - [Flash_Write_Data](#flash_write_data-1)
+      - [Erasing the Flash](#erasing-the-flash)
+      - [Programming(Writing) Flash](#programmingwriting-flash)
+  - [Reading Data from the Memory](#reading-data-from-the-memory)
+  - [Converting Stored Data to String](#converting-stored-data-to-string)
+  - [External References](#external-references)
+>>>>>>> Stashed changes
 
 <!-- /code_chunk_output -->
 
@@ -62,6 +82,7 @@ uint32_t Flash_Write_Data (uint32_t StartPageAddress, uint32_t * data){
 The flow chart below shows the process the function performs when it is called.
 
 ```mermaid
+<<<<<<< Updated upstream
 graph TD
 A([Start]) --> B[/Get Number of Words/]
 B[/Get Number of Words/] --> C[/Unlock Flash/]
@@ -74,18 +95,37 @@ F[/Lock Flash/] --> G([End])
 
 ###### 1. Compute the Number of Words 
 The function first computes how many words the data have. The snippet below computes the number word by adding the qoutient of the lenght data(using _strlen(data)_ function) divided by four , and added by one, if the length of the data has a remainder (divided by four) and zero if none.
+=======
+graph LR;
+A([Start]) --> B[/Compute Number of Words/];
+B[/Compute Number of Words/] --> C[/Unlock Flash/];
+C[/Unlock Flash/] --> D[/Erase Flash/];
+D[/Erase Flash/] --> E[/Program Flash/];
+E[/Program Flash/] --> F[/Lock Flash/];
+F[/Lock Flash/] --> G([End]);
+```
+
+
+##### 1. Computing the Number of Words 
+The function first computes how many words the data have. On this case a word has four bytes into it. 
+
+The snippet below computes the number word by adding the qoutient of the lenght data(using _strlen(data)_ function) divided by four , and added by one, if the length of the data has a remainder (divided by four) and zero if none.
+>>>>>>> Stashed changes
 
 ```C { output="html"}
 ...
 int numberofwords = (strlen(data)/4) + ((strlen(data) % 4) != 0);
 ```
-For example a "_Hello World_" string that has character length of 11, would have a three words. This is because 11/4 = 2, with the _"rld"_  as a remainder, which would lead to  2 + 1 = 3. The table below maps how many word the example string have.
+For example a "_Hello World_" string that has data length of 11, would have a three words as output of this process. This is because 11/4 = 2, with the _"rld"_  as a remainder, which would lead to  2 + 1 = 3. 
+
+The table below maps how many word the example string have.
 
 |Word|>|>|>|1|>|>|>|2|>|>|>|3|
 |--|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 |data[ ]|0|1|2|3|4|5|6|7|8|9|10|11|
 |char|H|e|l|l|o| _ |W|o|r|l|d|_|
 
+<<<<<<< Updated upstream
 ###### 2. Unlock Flash 
 Next we must unlocks the flash memory for modification by using the code below.
 ```C++
@@ -93,17 +133,34 @@ HAL_FLASH_Unlock();
 ```
 ###### 3. Erase Flash
 After the flash-memory has been unlock, the function  erases the area unto which the data will be written. First we have to declare the FLASH_EraseInitTypeDef.
+=======
+##### 2. Unlocking Flash 
+Next we must unlock the flash memory for modification by using the code below.
+```c
+HAL_FLASH_Unlock();
+```
+##### 3. Erasing Flash
+After the flash-memory has been unlock, the function  erases the area unto which the data will be written, but we have to define FLASH_EraseInitTypeDef type first.
+>>>>>>> Stashed changes
 
 ```C++
 static FLASH_EraseInitTypeDef EraseInitStruct;
 uint32_t PAGEError;
 ...
+<<<<<<< Updated upstream
 //Declare structure Variables
 uint32_t StartPage = GetPage(StartPageAddress);
 uint32_t EndPageAdress = StartPageAddress + numberofwords*4;
 uint32_t EndPage = GetPage(EndPageAdress);
 uint32_t NumberOfPage = ((EndPage - StartPage)/FLASH_PAGE_SIZE) +1;
 
+=======
+//Declare structure variables
+uint32_t StartPage 			= GetPage(StartPageAddress);
+uint32_t EndPageAdress 		= StartPageAddress + numberofwords*4;
+uint32_t EndPage 			= GetPage(EndPageAdress);
+uint32_t NumberOfPages		= ((EndPage - StartPage)/FLASH_PAGE_SIZE) +1;
+>>>>>>> Stashed changes
 //Fill EraseInit structure
 EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
 EraseInitStruct.PageAddress = StartPage;
@@ -115,7 +172,25 @@ if (HAL_FLASHEx_Erase(&EraseInitStruct, &PAGEError) != HAL_OK){
 }
 ...
 ```
+<<<<<<< Updated upstream
 **Variable Declaration**
+=======
+
+The *GetPage()* function gets the page number of StartPageAddress for it is not always we want to store our variable at the start address of the page. Remember that every page has 1KByte (1024 bytes) of data, which has a lot if we want only to store numeric values (even some character arrays.)
+
+The code below returns the starting page address of any address that you will pass on its arguments.
+```c
+static uint32_t GetPage(uint32_t Address){
+	for (int indx = 0; indx < 128; indx++){
+		if((Address < (0x08000000 + (1024 *(indx+1)))) && (Address >= (0x08000000 + 1024*indx))){
+			return (0x08000000 + 1024*indx);
+		}
+	}
+	return -1;
+}
+```
+**EraseInit Structure Variable Declaration**
+>>>>>>> Stashed changes
 - **StartPage** - is the page name or number in the memory block in which we want to store the _data_. This can be computed with the _GetPage()_ function.
 The _GetPage()_ function is another function within the library. In our example the start page address of _0x0801 FC00_ would have a page number of **127**.
 - **EndPageAddress** - is the after page address on the memory on which the data will be written grouped in fours. The _EndPageAddress_ is computed by adding the _StartPageAddress_ with the _numberofwords_  multiplied by four(4). In our example, the last page page in which the "Hello World" would be written is 0x0801 FC0B(plus with the nullafter the character 'd'). The end address would be 0x0801 FC00 + (3*4) = **0x0801 FC0C**.
@@ -179,6 +254,57 @@ The program will store the value into the _*var_  word by word, determined by in
 Afterwhich it exits the function. The value of _StartPageAddress_ now is tored on the address value of _*var_.
 
 
+<<<<<<< Updated upstream
+=======
+if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK){
+	return HAL_FLASH_GetError ();
+}
+```
+The difference between the functions are, first is on the variable declaration, the "Page" was replaced with "Sectors" like *StartPageAddress* was replaced with *StartSectorAddress*. Then the EraseInit requires an additional VoltageRange structure for devices STM32F4xx series. This voltage range is the device voltage range which defines the erase parallelism with the following must have values below. 
+
+Since the nucleo's mcu operates on 3.3 volt range, the voltage range that must be selected *FLASH_VOLTAGE_RANGE_3* which has an operating range of 2.7V to 3.6V.
+
+```c
+#define FLASH_VOLTAGE_RANGE_1        0x00000000U  /*!< Device operating range: 1.8V to 2.1V                */
+#define FLASH_VOLTAGE_RANGE_2        0x00000001U  /*!< Device operating range: 2.1V to 2.7V                */
+#define FLASH_VOLTAGE_RANGE_3        0x00000002U  /*!< Device operating range: 2.7V to 3.6V                */
+#define FLASH_VOLTAGE_RANGE_4        0x00000003U  /*!< Device operating range: 2.7V to 3.6V + External Vpp */
+```
+
+#### Programming(Writing) Flash
+This process is the same as with the former function except for the second argument on the *HAL_FLASH_Program()* function which takes in the *StartSectorAddress* instead of the *StartPageAddress*.
+
+```c
+...
+while (ctr < numberofwords){
+	if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, StartSectorAddress, data[ctr]) == HAL_OK){
+		StartSectorAddress += 4;  
+		ctr++;
+	}
+	else{
+		return HAL_FLASH_GetError ();
+	}
+}
+```
+## Reading Data from the Memory
+The code below retrieves the data stored at the flash-memory. The function has two arguments, *StartPageAddress* which is the address of the data we will retrieve. Then the *data*, which is the address of the variable which we want the data to store with.
+```c
+void Flash_Read_Data (uint32_t StartPageAddress, __IO uint32_t * data){
+	while (1){
+		*data = *(__IO uint32_t *)StartPageAddress;
+		if (*data == 0xffffffff){
+			*data = '\0';
+			break;
+		}
+		StartPageAddress += 4;
+		data++;
+	}
+}
+```
+Inside the function is a loop which passess the data from one address to another word by word. This are determined by the increment in StartPageAddress by four(4).
+
+## Converting Stored Data to String
+>>>>>>> Stashed changes
 
 ### External References
 - [Blue Pill](https://stm32duinoforum.com/forum/wiki_subdomain/index_title_Blue_Pill.html)
