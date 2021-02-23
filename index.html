@@ -261,33 +261,47 @@ pre[data-line] .line-highlight[data-end]:after {
     </head>
     <body for="html-export">
       <div class="mume markdown-preview  ">
-      <h3 class="mume-header" id="reading-and-writing-on-memory">Reading and Writing on Memory</h3>
+      <h1 class="mume-header" id="reading-and-writing-on-stm32-mcu-flash-memory">Reading and Writing on STM32 MCU Flash Memory</h1>
 
 <div class="code-chunk" data-id="code-chunk-id-0" data-cmd="toc"><div class="input-div"><div class="btn-group"><div class="run-btn btn"><span>&#x25B6;&#xFE0E;</span></div><div class="run-all-btn btn">all</div></div><div class="status">running...</div></div><div class="output-div"></div></div><ul>
-<li><a href="#reading-and-writing-on-memory">Reading and Writing on Memory</a>
+<li><a href="#reading-and-writing-on-stm32-mcu-flash-memory">Reading and Writing on STM32 MCU Flash Memory</a>
+<ul>
+<li><a href="#memory-divided-by-pages">Memory Divided by Pages</a>
 <ul>
 <li><a href="#flash-module-organization-medium-density-devices">Flash Module Organization (medium-density devices)</a></li>
 <li><a href="#flash_write_data">Flash_Write_Data</a>
 <ul>
-<li><a href="#function-flow">Function Flow</a>
-<ul>
-<li><a href="#1-compute-the-number-of-words">1. Compute the Number of Words</a></li>
-<li><a href="#2-unlock-flash">2. Unlock Flash</a></li>
-<li><a href="#3-erase-flash">3. Erase Flash</a></li>
-<li><a href="#4-program-flash">4. Program Flash</a></li>
+<li><a href="#1-computing-the-number-of-words">1. Computing the Number of Words</a></li>
+<li><a href="#2-unlocking-flash">2. Unlocking Flash</a></li>
+<li><a href="#3-erasing-flash">3. Erasing Flash</a></li>
+<li><a href="#4-programmingwriting-flash">4. Programming(Writing) Flash</a></li>
 <li><a href="#5-lock-flash">5. Lock Flash</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li><a href="#flash_read_data">Flash_Read_Data</a></li>
 </ul>
 </li>
+<li><a href="#memory-divided-by-sectors">Memory Divided by Sectors</a>
+<ul>
+<li><a href="#flash_write_data-1">Flash_Write_Data</a>
+<ul>
+<li><a href="#erasing-the-flash">Erasing the Flash</a></li>
+<li><a href="#programmingwriting-flash">Programming(Writing) Flash</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#reading-data-from-the-memory">Reading Data from the Memory</a></li>
+<li><a href="#converting-stored-data-to-string">Converting Stored Data to String</a></li>
 <li><a href="#external-references">External References</a></li>
 </ul>
+</li>
+</ul>
 <p>Every microcontroller had an allocated flash-memory in which the firmware are stored. The advantage of the flash-memory is that it retains its data even the power is disconnected. It is ideal for constants to be stored which vital for the firmware&apos;s operation.</p>
-<p>On this document we will use the development board called &quot;blue pill&quot; and will use STM32CubeIDE as text editor. The blue pill use STM32F103C8 MCU.</p>
-<h4 class="mume-header" id="flash-module-organization-medium-density-devices">Flash Module Organization (medium-density devices)</h4>
+<h2 class="mume-header" id="memory-divided-by-pages">Memory Divided by Pages</h2>
+
+<p>On this example we will use the development board called &quot;blue pill&quot; and will use STM32CubeIDE as text editor. The blue pill use STM32F103C8 MCU.</p>
+<h3 class="mume-header" id="flash-module-organization-medium-density-devices">Flash Module Organization (medium-density devices)</h3>
 
 <p>STM32F103C8 belongs to the medium density devices of ST. The table below shows that STM32F103C8 had 128 pages of 1 Kbyte memory block starting from 0x0800 0000 to 0x0801 FFFF.</p>
 <table>
@@ -344,20 +358,11 @@ pre[data-line] .line-highlight[data-end]:after {
 </tr>
 </tbody>
 </table>
- <!-- |Information block|System memory|0x1FFF F000 - 0x0801 F7FF|2 Kbyte|
- |^|Option Bytes|0x1FFF F800 - 0x0801 F80F|16|
- |Flash memory<br>interface<br>registers|FLASH_ACR|0x4002 2000 - 0x4002 2003|4|
- |^|FLASH_KEYR|0x4002 2004 - 0x4002 2007|4|
- |^|FLASH_OPTKEYR|0x4002 2008 - 0x4002 200B|4|
- |^|FLASH_SR|0x4002 200C - 0x4002 200F|4|
- |^|FLASH_CR|0x4002 2010 - 0x4002 2013|4|
- |^|FLASH_AR|0x4002 2014 - 0x4002 2017|4|
- |^|Reserved|0x4002 2018 - 0x4002 201B|4| -->
 <p>If we want to save variable/constants into the flash-memory, other than the main firmware, it is best to start at the very last page 0x0801 FC00 going up in order to avoid overwritting the firmware itself.</p>
-<h4 class="mume-header" id="flash_write_data">Flash_Write_Data</h4>
+<h3 class="mume-header" id="flash_write_data">Flash_Write_Data</h3>
 
 <p>This function writes 32-bit of data into a specified flash memory address. It has two arguments which are as shown on the code snippet below:</p>
-<pre data-role="codeBlock" data-info="c++" class="language-cpp"><span class="token keyword">uint32_t</span> <span class="token function">Flash_Write_Data</span> <span class="token punctuation">(</span><span class="token keyword">uint32_t</span> StartPageAddress<span class="token punctuation">,</span> <span class="token keyword">uint32_t</span> <span class="token operator">*</span> data<span class="token punctuation">)</span><span class="token punctuation">{</span>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token class-name">uint32_t</span> <span class="token function">Flash_Write_Data</span> <span class="token punctuation">(</span><span class="token class-name">uint32_t</span> StartPageAddress<span class="token punctuation">,</span> <span class="token class-name">uint32_t</span> <span class="token operator">*</span> data<span class="token punctuation">)</span><span class="token punctuation">{</span>
 	<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 	<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
@@ -365,22 +370,22 @@ pre[data-line] .line-highlight[data-end]:after {
 <li><strong>StartPageAddress</strong> - the starting address of the page in flash-memory which where you want to write.</li>
 <li><strong>data</strong> - the address of the 32-bit data to be written into the flash memory.</li>
 </ul>
-<h5 class="mume-header" id="function-flow">Function Flow</h5>
-
 <p>The flow chart below shows the process the function performs when it is called.</p>
-<div class="mermaid">graph TD
-A([Start]) --&gt; B[/Get Number of Words/]
-B[/Get Number of Words/] --&gt; C[/Unlock Flash/]
-C[/Unlock Flash/] --&gt; D[/Erase Flash/]
-D[/Erase Flash/] --&gt; E[/Program Flash/]
-E[/Program Flash/] --&gt; F[/Lock Flash/]
-F[/Lock Flash/] --&gt; G([End])
-</div><h6 class="mume-header" id="1-compute-the-number-of-words">1. Compute the Number of Words</h6>
+<div class="mermaid">graph LR;
+A([Start]) --&gt; B[/Compute Number of Words/];
+B[/Compute Number of Words/] --&gt; C[/Unlock Flash/];
+C[/Unlock Flash/] --&gt; D[/Erase Flash/];
+D[/Erase Flash/] --&gt; E[/Program Flash/];
+E[/Program Flash/] --&gt; F[/Lock Flash/];
+F[/Lock Flash/] --&gt; G([End]);
+</div><h5 class="mume-header" id="1-computing-the-number-of-words">1. Computing the Number of Words</h5>
 
-<p>The function first computes how many words the data have. The snippet below computes the number word by adding the qoutient of the lenght data(using <em>strlen(data)</em> function) divided by four , and added by one, if the length of the data has a remainder (divided by four) and zero if none.</p>
-<pre data-role="codeBlock" data-info="C { output=&quot;html&quot;}" class="language-c"><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<p>The function first computes how many words the data have. On this case a word has four bytes into it.</p>
+<p>The snippet below computes the number word by adding the qoutient of the lenght data(using <em>strlen(data)</em> function) divided by four , and added by one, if the length of the data has a remainder (divided by four) and zero if none.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 <span class="token keyword">int</span> numberofwords <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token function">strlen</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token operator">/</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">strlen</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span> <span class="token operator">%</span> <span class="token number">4</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-</pre><p>For example a &quot;<em>Hello World</em>&quot; string that has character length of 11, would have a three words. This is because 11/4 = 2, with the <em>&quot;rld&quot;</em>  as a remainder, which would lead to  2 + 1 = 3. The table below maps how many word the example string have.</p>
+</pre><p>For example a &quot;<em>Hello World</em>&quot; string that has data length of 11, would have a three words as output of this process. This is because 11/4 = 2, with the <em>&quot;rld&quot;</em>  as a remainder, which would lead to  2 + 1 = 3.</p>
+<p>The table below maps how many word the example string have.</p>
 <table>
 <thead>
 <tr>
@@ -432,47 +437,57 @@ F[/Lock Flash/] --&gt; G([End])
 </tr>
 </tbody>
 </table>
-<h6 class="mume-header" id="2-unlock-flash">2. Unlock Flash</h6>
+<h5 class="mume-header" id="2-unlocking-flash">2. Unlocking Flash</h5>
 
-<p>Next we must unlocks the flash memory for modification by using the code below.</p>
-<pre data-role="codeBlock" data-info="C++" class="language-cpp"><span class="token function">HAL_FLASH_Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-</pre><h6 class="mume-header" id="3-erase-flash">3. Erase Flash</h6>
+<p>Next we must unlock the flash memory for modification by using the code below.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token function">HAL_FLASH_Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</pre><h5 class="mume-header" id="3-erasing-flash">3. Erasing Flash</h5>
 
-<p>After the flash-memory has been unlock, the function  erases the area unto which the data will be written. First we have to declare the FLASH_EraseInitTypeDef.</p>
-<pre data-role="codeBlock" data-info="C++" class="language-cpp"><span class="token keyword">static</span> FLASH_EraseInitTypeDef EraseInitStruct<span class="token punctuation">;</span>
-<span class="token keyword">uint32_t</span> PAGEError<span class="token punctuation">;</span>
+<p>After the flash-memory has been unlock, the function  erases the area unto which the data will be written, but we have to define FLASH_EraseInitTypeDef type first.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token keyword">static</span> FLASH_EraseInitTypeDef EraseInitStruct<span class="token punctuation">;</span>
+<span class="token class-name">uint32_t</span> PAGEError<span class="token punctuation">;</span>
 <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
-<span class="token comment">//Declare structure Variables</span>
-<span class="token keyword">uint32_t</span> StartPage <span class="token operator">=</span> <span class="token function">GetPage</span><span class="token punctuation">(</span>StartPageAddress<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">uint32_t</span> EndPageAdress <span class="token operator">=</span> StartPageAddress <span class="token operator">+</span> numberofwords<span class="token operator">*</span><span class="token number">4</span><span class="token punctuation">;</span>
-<span class="token keyword">uint32_t</span> EndPage <span class="token operator">=</span> <span class="token function">GetPage</span><span class="token punctuation">(</span>EndPageAdress<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">uint32_t</span> NumberOfPage <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>EndPage <span class="token operator">-</span> StartPage<span class="token punctuation">)</span><span class="token operator">/</span>FLASH_PAGE_SIZE<span class="token punctuation">)</span> <span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">;</span>
-
+<span class="token comment">//Declare structure variables</span>
+<span class="token class-name">uint32_t</span> StartPage 			<span class="token operator">=</span> <span class="token function">GetPage</span><span class="token punctuation">(</span>StartPageAddress<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">uint32_t</span> EndPageAdress 		<span class="token operator">=</span> StartPageAddress <span class="token operator">+</span> numberofwords<span class="token operator">*</span><span class="token number">4</span><span class="token punctuation">;</span>
+<span class="token class-name">uint32_t</span> EndPage 			<span class="token operator">=</span> <span class="token function">GetPage</span><span class="token punctuation">(</span>EndPageAdress<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">uint32_t</span> NumberOfPages		<span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>EndPage <span class="token operator">-</span> StartPage<span class="token punctuation">)</span><span class="token operator">/</span>FLASH_PAGE_SIZE<span class="token punctuation">)</span> <span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">;</span>
 <span class="token comment">//Fill EraseInit structure</span>
 EraseInitStruct<span class="token punctuation">.</span>TypeErase   <span class="token operator">=</span> FLASH_TYPEERASE_PAGES<span class="token punctuation">;</span>
 EraseInitStruct<span class="token punctuation">.</span>PageAddress <span class="token operator">=</span> StartPage<span class="token punctuation">;</span>
-EraseInitStruct<span class="token punctuation">.</span>NbPages     <span class="token operator">=</span> NumberOfPage<span class="token punctuation">;</span>
-
+EraseInitStruct<span class="token punctuation">.</span>NbPages     <span class="token operator">=</span> NumberOfPages<span class="token punctuation">;</span>
 <span class="token comment">//capture error</span>
 <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">HAL_FLASHEx_Erase</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>EraseInitStruct<span class="token punctuation">,</span> <span class="token operator">&amp;</span>PAGEError<span class="token punctuation">)</span> <span class="token operator">!=</span> HAL_OK<span class="token punctuation">)</span><span class="token punctuation">{</span>
 	<span class="token keyword">return</span> <span class="token function">HAL_FLASH_GetError</span> <span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
-</pre><p><strong>Variable Declaration</strong></p>
+</pre><p>The <em>GetPage()</em> function gets the page number of StartPageAddress for it is not always we want to store our variable at the start address of the page. Remember that every page has 1KByte (1024 bytes) of data, which has a lot if we want only to store numeric values (even some character arrays.)</p>
+<p>The code below returns the starting page address of any address that you will pass on its arguments.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token keyword">static</span> <span class="token class-name">uint32_t</span> <span class="token function">GetPage</span><span class="token punctuation">(</span><span class="token class-name">uint32_t</span> Address<span class="token punctuation">)</span><span class="token punctuation">{</span>
+	<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> indx <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> indx <span class="token operator">&lt;</span> <span class="token number">128</span><span class="token punctuation">;</span> indx<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+		<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token punctuation">(</span>Address <span class="token operator">&lt;</span> <span class="token punctuation">(</span><span class="token number">0x08000000</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token number">1024</span> <span class="token operator">*</span><span class="token punctuation">(</span>indx<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>Address <span class="token operator">&gt;=</span> <span class="token punctuation">(</span><span class="token number">0x08000000</span> <span class="token operator">+</span> <span class="token number">1024</span><span class="token operator">*</span>indx<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+			<span class="token keyword">return</span> <span class="token punctuation">(</span><span class="token number">0x08000000</span> <span class="token operator">+</span> <span class="token number">1024</span><span class="token operator">*</span>indx<span class="token punctuation">)</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword">return</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</pre><p><strong>EraseInit Structure Variable Declaration</strong></p>
 <ul>
 <li><strong>StartPage</strong> - is the page name or number in the memory block in which we want to store the <em>data</em>. This can be computed with the <em>GetPage()</em> function.<br>
 The <em>GetPage()</em> function is another function within the library. In our example the start page address of <em>0x0801 FC00</em> would have a page number of <strong>127</strong>.</li>
-<li><strong>EndPageAddress</strong> - is the after page address on the memory on which the data will be written grouped in fours. The <em>EndPageAddress</em> is computed by adding the <em>StartPageAddress</em> with the <em>numberofwords</em>  multiplied by four(4). In our example, the last page page in which the &quot;Hello World&quot; would be written is 0x0801 FC0B(plus with the nullafter the character &apos;d&apos;). The end address would be 0x0801 FC00 + (3*4) = <strong>0x0801 FC0C</strong>.<br>
-<img src="endpageaddress.png" width="95%"></li>
+<li><strong>EndPageAddress</strong> - is the after page address on the memory on which the data will be written grouped in fours. The <em>EndPageAddress</em> is computed by adding the <em>StartPageAddress</em> with the <em>numberofwords</em>  multiplied by four(4). In our example, the last page page in which the &quot;Hello World&quot; would be written is 0x0801 FC0B(plus with the nullafter the character &apos;d&apos;). The end address would be 0x0801 FC00 + (3*4) = <strong>0x0801 FC0C</strong>. <br><br>
+<img src="endpageaddress.png" width="95%"><br>
+<br></li>
 <li><strong>EndPage</strong> - is the page name or number in the memory block in which the last bit of data will be stored. This can be computed also with the GetPage() function.</li>
 </ul>
-<p><strong>Erasing the Flash-Memory</strong></p>
+<p><strong>EraseInit Structure</strong><br>
+the following structures are required on erasing the flash-memory.</p>
 <ul>
 <li><strong>TypeErase</strong> - Mass erase or page erase. On our example we are using page erase, so the value would be <em>FLASH_TYPEERASE_PAGES</em>.</li>
-<li><strong>PageAddress</strong> -  the initial FLASH page address to be erased. This has been computed and saved in our <em>StartPage</em> variable.</li>
-<li><strong>NbPages</strong> - number of pages to be erased. On our example, this was computed by adding the quotient of (EndPage - StartPage) and FLASH_PAGE_SIZE(1024) by one (1).</li>
+<li><strong>PageAddress</strong> -  The initial flash page address to be erased. This has been computed and saved in our <em>StartPage</em> variable.</li>
+<li><strong>NbPages</strong> - Number of pages to be erased. On our example, this was computed by adding the quotient of (EndPage - StartPage) and FLASH_PAGE_SIZE(1024) by one (1).</li>
 </ul>
-<h6 class="mume-header" id="4-program-flash">4. Program Flash</h6>
+<h5 class="mume-header" id="4-programmingwriting-flash">4. Programming(Writing) Flash</h5>
 
 <p>After the page area has been erased, we can now write the data into the flash memory. The snippet below writes the data into the flash-memory, word by word. this is determined by the <em>HAL_FLASH_Program&apos;s</em> argument <strong>FLASH_TYPEPROGRAM_WORD</strong>.<br>
 If the writing process is OK, we increment the <em>ctr</em>, and  add 4 to the <em>StartPageAddress</em>, else an error is captured.</p>
@@ -486,12 +501,12 @@ If the writing process is OK, we increment the <em>ctr</em>, and  add 4 to the <
 		<span class="token keyword">return</span> <span class="token function">HAL_FLASH_GetError</span> <span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 	<span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
-</pre><h6 class="mume-header" id="5-lock-flash">5. Lock Flash</h6>
+</pre><h5 class="mume-header" id="5-lock-flash">5. Lock Flash</h5>
 
 <p>After the writing process, we must lock the flash by running the code below to protect the flash from unwanted operation.</p>
-<pre data-role="codeBlock" data-info="C++" class="language-cpp"><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
 <span class="token function">HAL_FLASH_Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-</pre><h4 class="mume-header" id="flash_read_data">Flash_Read_Data</h4>
+</pre><h3 class="mume-header" id="flash_read_data">Flash_Read_Data</h3>
 
 <p>This function reads data from the flash memory and has the following arguments.</p>
 <pre data-role="codeBlock" data-info="C++" class="language-cpp"><span class="token keyword">void</span> <span class="token function">Flash_Read_Data</span> <span class="token punctuation">(</span><span class="token keyword">uint32_t</span> StartPageAddress<span class="token punctuation">,</span> __IO <span class="token keyword">uint32_t</span> <span class="token operator">*</span> data<span class="token punctuation">)</span><span class="token punctuation">{</span>
@@ -512,7 +527,278 @@ If the writing process is OK, we increment the <em>ctr</em>, and  add 4 to the <
 <span class="token punctuation">}</span>
 </pre><p>The program will store the value into the <em>*var</em>  word by word, determined by incrementing <em>StartPageAddress</em> by 4, until value is equal to 0xFFFFFFFF, in which it replaces it with \0.</p>
 <p>Afterwhich it exits the function. The value of <em>StartPageAddress</em> now is tored on the address value of <em>*var</em>.</p>
-<h3 class="mume-header" id="external-references">External References</h3>
+<h2 class="mume-header" id="memory-divided-by-sectors">Memory Divided by Sectors</h2>
+
+<p>Some ST&apos;s MCU are mapped with sectors instead of pages. These sectors differs in sizes. On this example we are using Nucleo F401RE with STM32F401RE as its core MCU. The table below shows the flash-memory mapping of the said MCU.</p>
+<table>
+<thead>
+<tr>
+<th>Block</th>
+<th style="text-align:center">Name</th>
+<th>Block base addresses</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="8">Main memory</td>
+<td style="text-align:center">Sector 0</td>
+<td>0x0800 0000 - 0x0800 3FFF</td>
+<td>16 Kbytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center">Sector 1</td>
+<td>0x0800 4000 - 0x0800 7FFF</td>
+<td>16 Kbytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center">Sector 2</td>
+<td>0x0800 8000 - 0x0800 BFFF</td>
+<td>16 Kbytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center">Sector 3</td>
+<td>0x0800 C000 - 0x0800 FFFF</td>
+<td>16 Kbytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center">Sector 4</td>
+<td>0x0801 0000 - 0x0801 FFFF</td>
+<td>64 Kbytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center">Sector 5</td>
+<td>0x0802 0000 - 0x0803 FFFF</td>
+<td>128 Kbytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center">Sector 6</td>
+<td>0x0804 0000 - 0x0805 FFFF</td>
+<td>128 Kbytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center">Sector 7</td>
+<td>0x0806 0000 - 0x0807 FFFF</td>
+<td>128 Kbytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center" colspan="2">System memory</td>
+<td>0x1FFF 0000 - 0x1FFF 77FF</td>
+<td>30 Kbytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center" colspan="2">OTP Area</td>
+<td>0x1FFF 7800 - 0x1FFF 7A0F</td>
+<td>528 bytes</td>
+</tr>
+<tr>
+
+<td style="text-align:center" colspan="2">Option bytes</td>
+<td>0x1FFF C000 - 0x1FFF C00F</td>
+<td>16 bytes</td>
+</tr>
+</tbody>
+</table>
+<h3 class="mume-header" id="flash_write_data-1">Flash_Write_Data</h3>
+
+<p>This function writes a data into the specified sector address on flash memory. The structure is the same as former but takes sector address instead of page address.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token class-name">uint32_t</span> <span class="token function">Flash_Write_Data</span> <span class="token punctuation">(</span><span class="token class-name">uint32_t</span> StartSectorAddress<span class="token punctuation">,</span> <span class="token class-name">uint32_t</span> <span class="token operator">*</span> data<span class="token punctuation">)</span><span class="token punctuation">{</span>
+	<span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+	<span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</pre><p>The function has two arguments which are both are addresses in the memory.</p>
+<ul>
+<li><strong>StartSectorAddress</strong> - the starting address of the sector into which the data will be written.</li>
+<li><strong>data</strong> - the address of the data to be stored in the flash-memory.<br>
+The flow of the function is the same as the former function but only differs on the <em>erasing of flash</em> and <em>programming of flash</em>, which will only be discussed on this section. Refer to the previous section for the full function flow.</li>
+</ul>
+<p>The flow of the function is the same as the flow of the function on writing on a memory divided by pages stated above. I will just point out the difference in this section.</p>
+<h4 class="mume-header" id="erasing-the-flash">Erasing the Flash</h4>
+
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword">static</span> FLASH_EraseInitTypeDef EraseInitStruct<span class="token punctuation">;</span>
+<span class="token class-name">uint32_t</span> SECTORError<span class="token punctuation">;</span>
+<span class="token keyword">int</span> ctr <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+<span class="token class-name">uint32_t</span> StartSector		  <span class="token operator">=</span> <span class="token function">GetSector</span><span class="token punctuation">(</span>StartSectorAddress<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">uint32_t</span> EndSectorAddress	  <span class="token operator">=</span> StartSectorAddress <span class="token operator">+</span> numberofwords<span class="token operator">*</span><span class="token number">4</span><span class="token punctuation">;</span>
+<span class="token class-name">uint32_t</span> EndSector 			  <span class="token operator">=</span> <span class="token function">GetSector</span><span class="token punctuation">(</span>EndSectorAddress<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token class-name">uint32_t</span> NumberOfSectors 	  <span class="token operator">=</span> <span class="token punctuation">(</span>EndSector <span class="token operator">-</span> StartSector<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+<span class="token comment">//Fill EraseInit structure</span>
+EraseInitStruct<span class="token punctuation">.</span>TypeErase     <span class="token operator">=</span> FLASH_TYPEERASE_SECTORS<span class="token punctuation">;</span>
+EraseInitStruct<span class="token punctuation">.</span>VoltageRange  <span class="token operator">=</span> FLASH_VOLTAGE_RANGE_3<span class="token punctuation">;</span>
+EraseInitStruct<span class="token punctuation">.</span>Sector        <span class="token operator">=</span> StartSector<span class="token punctuation">;</span>
+EraseInitStruct<span class="token punctuation">.</span>NbSectors     <span class="token operator">=</span> NumberOfSector
+
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">HAL_FLASHEx_Erase</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>EraseInitStruct<span class="token punctuation">,</span> <span class="token operator">&amp;</span>SECTORError<span class="token punctuation">)</span> <span class="token operator">!=</span> HAL_OK<span class="token punctuation">)</span><span class="token punctuation">{</span>
+	<span class="token keyword">return</span> <span class="token function">HAL_FLASH_GetError</span> <span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</pre><p>The difference between the functions are, first is on the variable declaration, the &quot;Page&quot; was replaced with &quot;Sectors&quot; like <em>StartPageAddress</em> was replaced with <em>StartSectorAddress</em>. Then the EraseInit requires an additional VoltageRange structure for devices STM32F4xx series. This voltage range is the device voltage range which defines the erase parallelism with the following must have values below.</p>
+<p>Since the nucleo&apos;s mcu operates on 3.3 volt range, the voltage range that must be selected <em>FLASH_VOLTAGE_RANGE_3</em> which has an operating range of 2.7V to 3.6V.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">FLASH_VOLTAGE_RANGE_1</span>        <span class="token expression"><span class="token number">0x00000000U</span>  </span><span class="token comment">/*!&lt; Device operating range: 1.8V to 2.1V                */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">FLASH_VOLTAGE_RANGE_2</span>        <span class="token expression"><span class="token number">0x00000001U</span>  </span><span class="token comment">/*!&lt; Device operating range: 2.1V to 2.7V                */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">FLASH_VOLTAGE_RANGE_3</span>        <span class="token expression"><span class="token number">0x00000002U</span>  </span><span class="token comment">/*!&lt; Device operating range: 2.7V to 3.6V                */</span></span>
+<span class="token macro property"><span class="token directive-hash">#</span><span class="token directive keyword">define</span> <span class="token macro-name">FLASH_VOLTAGE_RANGE_4</span>        <span class="token expression"><span class="token number">0x00000003U</span>  </span><span class="token comment">/*!&lt; Device operating range: 2.7V to 3.6V + External Vpp */</span></span>
+</pre><h4 class="mume-header" id="programmingwriting-flash">Programming(Writing) Flash</h4>
+
+<p>This process is the same as with the former function except for the second argument on the <em>HAL_FLASH_Program()</em> function which takes in the <em>StartSectorAddress</em> instead of the <em>StartPageAddress</em>.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token keyword">while</span> <span class="token punctuation">(</span>ctr <span class="token operator">&lt;</span> numberofwords<span class="token punctuation">)</span><span class="token punctuation">{</span>
+	<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">HAL_FLASH_Program</span><span class="token punctuation">(</span>FLASH_TYPEPROGRAM_WORD<span class="token punctuation">,</span> StartSectorAddress<span class="token punctuation">,</span> data<span class="token punctuation">[</span>ctr<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">==</span> HAL_OK<span class="token punctuation">)</span><span class="token punctuation">{</span>
+		StartSectorAddress <span class="token operator">+=</span> <span class="token number">4</span><span class="token punctuation">;</span>  
+		ctr<span class="token operator">++</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+	<span class="token keyword">else</span><span class="token punctuation">{</span>
+		<span class="token keyword">return</span> <span class="token function">HAL_FLASH_GetError</span> <span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</pre><h2 class="mume-header" id="reading-data-from-the-memory">Reading Data from the Memory</h2>
+
+<p>The code below retrieves the data stored at the flash-memory which can be applied to both devices whose memory are divided by either pages or sectors. The function has two arguments, <em>StartPageAddress</em> which is the address of the data we will retrieve. Then the <em>data</em>, which is the address of the variable which we want the data to store with.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token keyword">void</span> <span class="token function">Flash_Read_Data</span> <span class="token punctuation">(</span><span class="token class-name">uint32_t</span> StartPageAddress<span class="token punctuation">,</span> __IO <span class="token class-name">uint32_t</span> <span class="token operator">*</span> data<span class="token punctuation">)</span><span class="token punctuation">{</span>
+	<span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+		<span class="token operator">*</span>data <span class="token operator">=</span> <span class="token operator">*</span><span class="token punctuation">(</span>__IO <span class="token class-name">uint32_t</span> <span class="token operator">*</span><span class="token punctuation">)</span>StartPageAddress<span class="token punctuation">;</span>
+		<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">*</span>data <span class="token operator">==</span> <span class="token number">0xffffffff</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+			<span class="token operator">*</span>data <span class="token operator">=</span> <span class="token string">&apos;\0&apos;</span><span class="token punctuation">;</span>
+			<span class="token keyword">break</span><span class="token punctuation">;</span>
+		<span class="token punctuation">}</span>
+		StartPageAddress <span class="token operator">+=</span> <span class="token number">4</span><span class="token punctuation">;</span>
+		data<span class="token operator">++</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</pre><p>Inside the function is a loop which passess the data from one address to another word by word. This are determined by the increment in <em>StartPageAddress</em> by four(4).</p>
+<h2 class="mume-header" id="converting-stored-data-to-string">Converting Stored Data to String</h2>
+
+<p>To read the stored string data on the flash memory address, we need to convert the data into strings using the function below.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"><span class="token keyword">void</span> <span class="token function">Convert_To_Str</span> <span class="token punctuation">(</span><span class="token class-name">uint32_t</span> <span class="token operator">*</span>data<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span>str<span class="token punctuation">)</span><span class="token punctuation">{</span>
+	<span class="token keyword">int</span> numberofbytes <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">strlen</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token operator">/</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">strlen</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span> <span class="token operator">%</span> <span class="token number">4</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">*</span><span class="token number">4</span><span class="token punctuation">;</span>
+
+	<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">;</span> i<span class="token operator">&lt;</span>numberofbytes<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span><span class="token punctuation">{</span>
+		str<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> data<span class="token punctuation">[</span>i<span class="token operator">/</span><span class="token number">4</span><span class="token punctuation">]</span><span class="token operator">&gt;&gt;</span><span class="token punctuation">(</span><span class="token number">8</span><span class="token operator">*</span><span class="token punctuation">(</span>i<span class="token operator">%</span><span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+	<span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</pre><p>The function first computes the number of bytes the data has but on the multiple of fours. In our example &quot;Hello World&quot; which has 11 characters, would have a computed value of 12.</p>
+<pre data-role="codeBlock" data-info="c" class="language-c"> numberofbytes <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">strlen</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token operator">/</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token function">strlen</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span> <span class="token operator">%</span> <span class="token number">4</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">*</span><span class="token number">4</span>
+ numberofbytes <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">11</span><span class="token operator">/</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token number">11</span><span class="token operator">%</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">!=</span><span class="token number">0</span> <span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">4</span> 
+ numberofbytes <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token number">4</span>
+ numberofbytes <span class="token operator">=</span> <span class="token number">12</span>
+</pre><p>Since the process of reading is by word(4 bytes), <em>data[]</em> are being divided into four groups, means</p>
+<pre data-role="codeBlock" data-info="c" class="language-c">data<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">&quot;Hell&quot;</span>
+data<span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">&quot;o Wo&quot;</span>
+data<span class="token punctuation">[</span><span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token string">&quot;rld &quot;</span>
+</pre><p>The rest of the operation&apos;s value are shown on the table below.</p>
+<table>
+<thead>
+<tr>
+<th>i</th>
+<th style="text-align:center">str[i]</th>
+<th style="text-align:center">[i/4]</th>
+<th>data[i/4]</th>
+<th>&gt;&gt;(8*(i%4))</th>
+<th>data[i/4]&gt;&gt;(8*(i%4))</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td style="text-align:center">&apos;H&apos;</td>
+<td style="text-align:center">0</td>
+<td>&quot;lleH&quot;</td>
+<td>&gt;&gt;0</td>
+<td>&apos;H&apos;</td>
+</tr>
+<tr>
+<td>1</td>
+<td style="text-align:center">&apos;e&apos;</td>
+<td style="text-align:center">0</td>
+<td>&quot;lleH&quot;</td>
+<td>&gt;&gt;8</td>
+<td>&apos;e&apos;</td>
+</tr>
+<tr>
+<td>2</td>
+<td style="text-align:center">&apos;l&apos;</td>
+<td style="text-align:center">0</td>
+<td>&quot;lleH&quot;</td>
+<td>&gt;&gt;16</td>
+<td>&apos;l&apos;</td>
+</tr>
+<tr>
+<td>3</td>
+<td style="text-align:center">&apos;l&apos;</td>
+<td style="text-align:center">0</td>
+<td>&quot;lleH&quot;</td>
+<td>&gt;&gt;24</td>
+<td>&apos;l&apos;</td>
+</tr>
+<tr>
+<td>4</td>
+<td style="text-align:center">&apos;o&apos;</td>
+<td style="text-align:center">1</td>
+<td>&quot;oW o&quot;</td>
+<td>&gt;&gt;0</td>
+<td>&apos;o&apos;</td>
+</tr>
+<tr>
+<td>5</td>
+<td style="text-align:center">&apos; &apos;</td>
+<td style="text-align:center">1</td>
+<td>&quot;oW o&quot;</td>
+<td>&gt;&gt;8</td>
+<td>&apos; &apos;</td>
+</tr>
+<tr>
+
+
+
+
+
+<td colspan="6">-</td>
+</tr>
+<tr>
+
+
+
+
+
+<td colspan="6">-</td>
+</tr>
+<tr>
+
+
+
+
+
+<td colspan="6">-</td>
+</tr>
+<tr>
+<td>11</td>
+<td style="text-align:center">&apos;d&apos;</td>
+<td style="text-align:center">2</td>
+<td>&quot; dlr&quot;</td>
+<td>&gt;&gt;16</td>
+<td>&apos;d&apos;</td>
+</tr>
+<tr>
+<td>12</td>
+<td style="text-align:center">null</td>
+<td style="text-align:center">2</td>
+<td>&quot;dlr&quot;</td>
+<td>&gt;&gt;24</td>
+<td>&apos; &apos;</td>
+</tr>
+</tbody>
+</table>
+<h2 class="mume-header" id="external-references">External References</h2>
 
 <ul>
 <li><a href="https://stm32duinoforum.com/forum/wiki_subdomain/index_title_Blue_Pill.html">Blue Pill</a></li>
@@ -522,26 +808,38 @@ If the writing process is OK, we increment the <em>ctr</em>, and  add 4 to the <
 
       </div>
       <div class="md-sidebar-toc"><ul>
-<li><a href="#reading-and-writing-on-memory">Reading and Writing on Memory</a>
+<li><a href="#reading-and-writing-on-stm32-mcu-flash-memory">Reading and Writing on STM32 MCU Flash Memory</a>
+<ul>
+<li><a href="#memory-divided-by-pages">Memory Divided by Pages</a>
 <ul>
 <li><a href="#flash-module-organization-medium-density-devices">Flash Module Organization (medium-density devices)</a></li>
 <li><a href="#flash_write_data">Flash_Write_Data</a>
 <ul>
-<li><a href="#function-flow">Function Flow</a>
-<ul>
-<li><a href="#1-compute-the-number-of-words">1. Compute the Number of Words</a></li>
-<li><a href="#2-unlock-flash">2. Unlock Flash</a></li>
-<li><a href="#3-erase-flash">3. Erase Flash</a></li>
-<li><a href="#4-program-flash">4. Program Flash</a></li>
+<li><a href="#1-computing-the-number-of-words">1. Computing the Number of Words</a></li>
+<li><a href="#2-unlocking-flash">2. Unlocking Flash</a></li>
+<li><a href="#3-erasing-flash">3. Erasing Flash</a></li>
+<li><a href="#4-programmingwriting-flash">4. Programming(Writing) Flash</a></li>
 <li><a href="#5-lock-flash">5. Lock Flash</a></li>
-</ul>
-</li>
 </ul>
 </li>
 <li><a href="#flash_read_data">Flash_Read_Data</a></li>
 </ul>
 </li>
+<li><a href="#memory-divided-by-sectors">Memory Divided by Sectors</a>
+<ul>
+<li><a href="#flash_write_data-1">Flash_Write_Data</a>
+<ul>
+<li><a href="#erasing-the-flash">Erasing the Flash</a></li>
+<li><a href="#programmingwriting-flash">Programming(Writing) Flash</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#reading-data-from-the-memory">Reading Data from the Memory</a></li>
+<li><a href="#converting-stored-data-to-string">Converting Stored Data to String</a></li>
 <li><a href="#external-references">External References</a></li>
+</ul>
+</li>
 </ul>
 </div>
       <a id="sidebar-toc-btn">&#x2261;</a>
@@ -559,7 +857,7 @@ MERMAID_CONFIG = {
 if (window['MERMAID_CONFIG']) {
   window['MERMAID_CONFIG'].startOnLoad = false
   window['MERMAID_CONFIG'].cloneCssStyles = false
-  window['MERMAID_CONFIG'].theme = "default"
+  window['MERMAID_CONFIG'].theme = "forest"
 }
 mermaid.initialize(window['MERMAID_CONFIG'] || {})
 if (typeof(window['Reveal']) !== 'undefined') {
