@@ -1,4 +1,4 @@
-## Reading and Writing on STM32 MCU Flash Memory
+# Reading and Writing on STM32 MCU Flash Memory
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
@@ -7,28 +7,27 @@
   - [Memory Divided by Pages](#memory-divided-by-pages)
     - [Flash Module Organization (medium-density devices)](#flash-module-organization-medium-density-devices)
     - [Flash_Write_Data](#flash_write_data)
-      - [Function Flow](#function-flow)
         - [1. Compute the Number of Words](#1-compute-the-number-of-words)
         - [2. Unlock Flash](#2-unlock-flash)
-        - [3. Erase Flash](#3-erase-flash)
-        - [4. Program Flash](#4-program-flash)
+        - [3. Erasing Flash](#3-erasing-flash)
+        - [4. Programming(Writing) Flash](#4-programmingwriting-flash)
         - [5. Lock Flash](#5-lock-flash)
     - [Flash_Read_Data](#flash_read_data)
   - [Memory Divided by Sectors](#memory-divided-by-sectors)
     - [Flash_Write_Data](#flash_write_data-1)
-      - [Erase Flash](#erase-flash)
-      - [Program Flash](#program-flash)
+      - [Erasing the Flash](#erasing-the-flash)
+      - [Programming(Writing) Flash](#programmingwriting-flash)
   - [External References](#external-references)
 
 <!-- /code_chunk_output -->
 
 Every microcontroller had an allocated flash-memory in which the firmware are stored. The advantage of the flash-memory is that it retains its data even the power is disconnected. It is ideal for constants to be stored which vital for the firmware's operation.
 
-### Memory Divided by Pages
+## Memory Divided by Pages
 
 On this example we will use the development board called "blue pill" and will use STM32CubeIDE as text editor. The blue pill use STM32F103C8 MCU. 
 
-#### Flash Module Organization (medium-density devices)
+### Flash Module Organization (medium-density devices)
 STM32F103C8 belongs to the medium density devices of ST. The table below shows that STM32F103C8 had 128 pages of 1 Kbyte memory block starting from 0x0800 0000 to 0x0801 FFFF.
 
 
@@ -45,9 +44,9 @@ STM32F103C8 belongs to the medium density devices of ST. The table below shows t
 
 If we want to save variable/constants into the flash-memory, other than the main firmware, it is best to start at the very last page 0x0801 FC00 going up in order to avoid overwritting the firmware itself.
 
-#### Flash_Write_Data
+### Flash_Write_Data
 This function writes 32-bit of data into a specified flash memory address. It has two arguments which are as shown on the code snippet below:
-```c++
+```c
 uint32_t Flash_Write_Data (uint32_t StartPageAddress, uint32_t * data){
 	...
 	return 0;
@@ -56,7 +55,6 @@ uint32_t Flash_Write_Data (uint32_t StartPageAddress, uint32_t * data){
 - **StartPageAddress** - the starting address of the page in flash-memory which where you want to write.
 - **data** - the address of the 32-bit data to be written into the flash memory.
 
-##### Function Flow
 The flow chart below shows the process the function performs when it is called.
 
 ```mermaid
@@ -70,10 +68,10 @@ F[/Lock Flash/] --> G([End]);
 ```
 
 
-###### 1. Compute the Number of Words 
+##### 1. Compute the Number of Words 
 The function first computes how many words the data have. The snippet below computes the number word by adding the qoutient of the lenght data(using _strlen(data)_ function) divided by four , and added by one, if the length of the data has a remainder (divided by four) and zero if none.
 
-```C { output="html"}
+```c
 ...
 int numberofwords = (strlen(data)/4) + ((strlen(data) % 4) != 0);
 ```
@@ -84,15 +82,15 @@ For example a "_Hello World_" string that has character length of 11, would have
 | data[ ] | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
 | char    | H | e | l | l | o | _ | W | o | r | l | d  | _  |
 
-###### 2. Unlock Flash 
+##### 2. Unlock Flash 
 Next we must unlocks the flash memory for modification by using the code below.
-```C++
+```c
 HAL_FLASH_Unlock();
 ```
-###### 3. Erase Flash
+##### 3. Erasing Flash
 After the flash-memory has been unlock, the function  erases the area unto which the data will be written. First we have to declare the FLASH_EraseInitTypeDef.
 
-```C++
+```c
 static FLASH_EraseInitTypeDef EraseInitStruct;
 uint32_t PAGEError;
 ...
@@ -126,7 +124,7 @@ the following structures are required on erasing the flash-memory.
 - **NbPages** - Number of pages to be erased. On our example, this was computed by adding the quotient of (EndPage - StartPage) and FLASH_PAGE_SIZE(1024) by one (1).
 	
 
-###### 4. Program Flash
+##### 4. Programming(Writing) Flash
 After the page area has been erased, we can now write the data into the flash memory. The snippet below writes the data into the flash-memory, word by word. this is determined by the _HAL_FLASH_Program's_ argument **FLASH_TYPEPROGRAM_WORD**.
 If the writing process is OK, we increment the _ctr_, and  add 4 to the _StartPageAddress_, else an error is captured.
 
@@ -143,14 +141,14 @@ while (ctr < numberofwords){
 	}
 }
 ```
-###### 5. Lock Flash
+##### 5. Lock Flash
 After the writing process, we must lock the flash by running the code below to protect the flash from unwanted operation.
 
-```C++
+```c
 ...
 HAL_FLASH_Lock();
 ```
-#### Flash_Read_Data
+### Flash_Read_Data
 This function reads data from the flash memory and has the following arguments.
 
 ```C++
@@ -175,13 +173,13 @@ while (1){
 The program will store the value into the _*var_  word by word, determined by incrementing _StartPageAddress_ by 4, until value is equal to 0xFFFFFFFF, in which it replaces it with \0. 
 
 Afterwhich it exits the function. The value of _StartPageAddress_ now is tored on the address value of _*var_.
-### Memory Divided by Sectors
+## Memory Divided by Sectors
 Some ST's MCU are mapped with sectors instead of pages. These sectors differs in sizes. On this example we are using Nucleo F401RE with STM32F401RE as its core MCU. The table below shows the flash-memory mapping of the said MCU.
 
 
 | Block       |     Name      | Block base addresses      | Size       |
-|-------------|:-------------:|---------------------------|------------|
-| Main memory |   Sector 0    | 0x0800 0000 - 0x0800 3FFF | 16 Kbyte   |
+|-------------|:-------------:|---------------------------|----------- |
+| Main memory |   Sector 0    | 0x0800 0000 - 0x0800 3FFF | 16 Kbytes  |
 | ^           |   Sector 1    | 0x0800 4000 - 0x0800 7FFF | 16 Kbytes  |
 | ^           |   Sector 2    | 0x0800 8000 - 0x0800 BFFF | 16 Kbytes  |
 | ^           |   Sector 3    | 0x0800 C000 - 0x0800 FFFF | 16 Kbytes  |
@@ -193,24 +191,26 @@ Some ST's MCU are mapped with sectors instead of pages. These sectors differs in
 | >           |   OTP Area    | 0x1FFF 7800 - 0x1FFF 7A0F | 528 bytes  |
 | >           | Option bytes  | 0x1FFF C000 - 0x1FFF C00F | 16 bytes   |
 
-#### Flash_Write_Data
-This function writes a data into the specified flash memory address.
+### Flash_Write_Data
+This function writes a data into the specified sector address on flash memory. The structure is the same as former but takes sector address instead of page address.
 
-```c++
+```c
 uint32_t Flash_Write_Data (uint32_t StartSectorAddress, uint32_t * data){
 	...
 	return 0;
 }
 ```
-The function has two arguments which are both addresses in the memory.
-- **StartSectorAddress** - the starting address of the sector into whiich the data will be written.
+The function has two arguments which are both are addresses in the memory.
+- **StartSectorAddress** - the starting address of the sector into which the data will be written.
 - **data** - the address of the data to be stored in the flash-memory.
+The flow of the function is the same as the former function but only differs on the *erasing of flash* and *programming of flash*, which will only be discussed on this section. Refer to the previous section for the full function flow.
 
 The flow of the function is the same as the flow of the function on writing on a memory divided by pages stated above. I will just point out the difference in this section.
 
-##### Erase Flash
+#### Erasing the Flash
 
-```c++
+```c
+...
 static FLASH_EraseInitTypeDef EraseInitStruct;
 uint32_t SECTORError;
 int ctr = 0;
@@ -229,21 +229,21 @@ if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK){
 	return HAL_FLASH_GetError ();
 }
 ```
-First is on the variable declaration, the "Page" was replaced with "Sectors" like **StartPageAddress** was replaced with **StartSectorAddress**.
+The difference between the functions are, first is on the variable declaration, the "Page" was replaced with "Sectors" like *StartPageAddress* was replaced with *StartSectorAddress*. Then the EraseInit requires an additional VoltageRange structure for devices STM32F4xx series. This voltage range is the device voltage range which defines the erase parallelism with the following must have values below. 
 
-Next the EraseInit requires an additional VoltageRange structure for devices STM32F4xx series. This voltage range is the device voltage range which defines the erase parallelism with the following must have values below. Since the nucleo's mcu operates at 3.3 volts, the voltage range would be **FLASH_VOLTAGE_RANGE_3**.
+Since the nucleo's mcu operates on 3.3 volt range, the voltage range that must be selected *FLASH_VOLTAGE_RANGE_3* which has an operating range of 2.7V to 3.6V.
 
-```c++
+```c
 #define FLASH_VOLTAGE_RANGE_1        0x00000000U  /*!< Device operating range: 1.8V to 2.1V                */
 #define FLASH_VOLTAGE_RANGE_2        0x00000001U  /*!< Device operating range: 2.1V to 2.7V                */
 #define FLASH_VOLTAGE_RANGE_3        0x00000002U  /*!< Device operating range: 2.7V to 3.6V                */
 #define FLASH_VOLTAGE_RANGE_4        0x00000003U  /*!< Device operating range: 2.7V to 3.6V + External Vpp */
 ```
 
-##### Program Flash
-This process is the same as the process described above.
+#### Programming(Writing) Flash
+This process is the same as with the former function except for the second argument on the *HAL_FLASH_Program()* function which takes in the *StartSectorAddress* instead of the *StartPageAddress*.
 
-```c++
+```c
 ...
 while (ctr < numberofwords){
 	if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, StartSectorAddress, data[ctr]) == HAL_OK){
@@ -256,7 +256,7 @@ while (ctr < numberofwords){
 }
 ```
 
-### External References
+## External References
 - [Blue Pill](https://stm32duinoforum.com/forum/wiki_subdomain/index_title_Blue_Pill.html)
 - [STM32F10xxx Flash memory microcontrollers](https://www.st.com/resource/en/programming_manual/cd00283419-stm32f10xxx-flash-memory-microcontrollers-stmicroelectronics.pdf)
 - [FLASH Programming in STM32](https://controllerstech.com/flash-programming-in-stm32/)
